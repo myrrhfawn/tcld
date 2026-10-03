@@ -1,0 +1,3 @@
+[submodule "external/D-FINE"]
+	path = external/D-FINE
+	url = https://github.com/Peterande/D-FINE.git
