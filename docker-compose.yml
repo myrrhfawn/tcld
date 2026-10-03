@@ -1,0 +1,34 @@
+services:
+  tcld:
+    image: tcld:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        UID: ${TCLD_UID:-1000}
+        GID: ${TCLD_GID:-1000}
+    # .env (if present) is read by compose for ${...} substitution below.
+    environment:
+      TCLD_DATA: /data
+      TCLD_RUNS: /runs
+      TCLD_CKPT: /ckpt
+      TCLD_IN_DOCKER: "1"
+      NVIDIA_VISIBLE_DEVICES: ${TCLD_GPUS:-all}
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    volumes:
+      - .:/workspace
+      - ${TCLD_DATA:-./data}:/data
+      - ${TCLD_RUNS:-./runs}:/runs
+      - ${TCLD_CKPT:-./checkpoints}:/ckpt
+    working_dir: /workspace
+    shm_size: 8g
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    stdin_open: true
+    tty: true
