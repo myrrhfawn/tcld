@@ -1,0 +1,11 @@
+# Hardware profile: RTX 3060 Laptop, 6 GB VRAM.
+name: laptop
+device: cuda
+amp: true
+input_size: [640, 640]
+batch_size: 2            # frame pairs per step for adaptation
+eval_batch_size: 8
+num_workers: 4
+freeze: [backbone, encoder]
+grad_checkpointing: false
+default_model: dfine_s

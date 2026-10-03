@@ -1,0 +1,14 @@
+# D-FINE-L (HGNetv2-B4), COCO-pretrained.
+__include__: [
+  '../../external/D-FINE/configs/dfine/dfine_hgnetv2_l_coco.yml',
+]
+
+output_dir: /runs/_dfine_l_unused
+
+HGNetv2:
+  pretrained: False
+
+tcld:
+  checkpoint: dfine_l_coco.pth
+  url: https://github.com/Peterande/storage/releases/download/dfinev1.0/dfine_l_coco.pth
+  coco_ap_reference: 54.0

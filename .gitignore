@@ -1,0 +1,44 @@
+# data, checkpoints, runs — never in git (see ai-plan.md rule 3)
+data/
+checkpoints/
+runs/
+weight/
+*.pth
+*.pt
+*.onnx
+*.engine
+
+# env
+.env
+.venv/
+venv/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# notebooks
+.ipynb_checkpoints/
+
+# editors / os
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# tensorboard / logs
+logs/
+events.out.tfevents.*
+
+# large figures are allowed only under results/figures and must be < 1 MB
+results/figures/*.gif
+results/figures/*.mp4
+
+# Claude Code local settings
+.claude/settings.local.json

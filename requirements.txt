@@ -1,0 +1,30 @@
+# torch / torchvision come from the Docker base image (see docker/Dockerfile).
+# For a local (non-Docker) install, install a matching torch first:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+
+# D-FINE upstream requirements (external/D-FINE/requirements.txt)
+faster-coco-eval>=1.6.6
+PyYAML>=6.0
+tensorboard>=2.15
+scipy>=1.11
+calflops
+transformers>=4.40
+loguru
+
+# tcld
+numpy>=1.26
+opencv-python-headless>=4.9
+Pillow>=10.0
+pycocotools>=2.0.7
+pandas>=2.1
+matplotlib>=3.8
+tqdm>=4.66
+requests>=2.31
+
+# tooling
+pytest>=8.0
+ruff>=0.5
+
+# deployment checks (P2.3, P6.5)
+onnx>=1.16
+onnxsim>=0.4.36

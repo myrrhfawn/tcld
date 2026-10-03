@@ -1,0 +1,16 @@
+# D-FINE-S (HGNetv2-B0), COCO-pretrained. Wraps the upstream config; dataset
+# paths from upstream are irrelevant here (we build our own loaders) but the
+# include keeps model/criterion/postprocessor definitions pinned to upstream.
+__include__: [
+  '../../external/D-FINE/configs/dfine/dfine_hgnetv2_s_coco.yml',
+]
+
+output_dir: /runs/_dfine_s_unused
+
+HGNetv2:
+  pretrained: False   # weights come from the full checkpoint, never re-download the backbone
+
+tcld:
+  checkpoint: dfine_s_coco.pth   # relative to $TCLD_CKPT
+  url: https://github.com/Peterande/storage/releases/download/dfinev1.0/dfine_s_coco.pth
+  coco_ap_reference: 48.5

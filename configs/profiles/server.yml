@@ -1,0 +1,11 @@
+# Hardware profile: mlgpu server (large VRAM).
+name: server
+device: cuda
+amp: true
+input_size: [640, 640]
+batch_size: 8
+eval_batch_size: 32
+num_workers: 8
+freeze: []
+grad_checkpointing: false
+default_model: dfine_l

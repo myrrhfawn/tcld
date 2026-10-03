@@ -1,0 +1,1 @@
+exp_id,phase,method,model,profile,cameras,seed,iters,delta,motion,loss_variant,reg,APm_co,AP50_co,AP75_co,APm_w,AP50_w,APG_m_co,APG_50_co,APG_75_co,coco_minival_AP,runtime_min,gpu,dfine_commit,config_path,notes
