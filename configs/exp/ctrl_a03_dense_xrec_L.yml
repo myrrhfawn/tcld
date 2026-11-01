@@ -1,0 +1,47 @@
+# Control for tf_a03_w5_n16_iou08_dense_xrec_L: tcl_weight 0.0, everything else identical.
+# Derived by scripts/make_paper_configs.py.
+base_stride: 4
+batch_size: 1
+clip_max_norm: 0.1
+criterion:
+  anchor_iou: 0.7
+  anchor_weight: 0.3
+  conf_weight: true
+  entropy_floor_weight: 0.0
+  iou_thresh: 0.8
+  l2sp_weight: 0.0
+  min_motion_px: 1.0
+  motion: hybrid
+  motion_weight: false
+  nms_iou: 0.7
+  score_thresh: 0.3
+  tcl:
+    divergence: w1
+    min_denom_pairs: 16
+    min_kept: 0.8
+    mode: sym
+    sharp_margin: 0.1
+    temperature: 1.0
+    w1_scale: 10.0
+  tcl_weight: 0.0
+  use_scale: false
+deltas:
+- 1
+- 2
+- 5
+diag_every: 50
+ema_decay: 0.9995
+eval_every: 0
+eval_frame_stride: 6
+flow_downscale: 2
+iters: 1000
+lr: 1e-05
+max_pairs_per_clip: 400
+method: tcld
+model: dfine_l
+name: ctrl_a03_dense_xrec_L
+phase: P4
+photometric: 0.0
+use_ema: true
+use_frozen: true
+weight_decay: 0.0001

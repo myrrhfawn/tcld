@@ -1,0 +1,33 @@
+# Self-training baseline (hard pseudo-boxes from the frozen initial model, upstream D-FINE criterion) under the final schedule: 750 it, lr 1e-5, EMA 0.9995, dense pairs, dense eval.
+name: st_a03_dense_night
+method: st
+phase: P4
+model: dfine_s
+iters: 1000
+lr: 1e-05
+weight_decay: 0.0001
+clip_max_norm: 0.1
+batch_size: 2
+use_frozen: true
+use_ema: true
+ema_decay: 0.9995
+diag_every: 50
+eval_every: 250
+eval_frame_stride: 3
+deltas:
+- 1
+- 2
+- 5
+base_stride: 4
+max_pairs_per_clip: 400
+photometric: 0.0
+flow_downscale: 2
+self_train:
+  teacher: frozen
+  score_thresh: 0.5
+  nms_iou: 0.7
+  restrict_to_target_classes: false
+criterion:
+  motion: none
+  anchor_weight: 0.0
+corruption: night

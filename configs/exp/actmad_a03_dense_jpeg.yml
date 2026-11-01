@@ -1,0 +1,30 @@
+# ActMAD baseline (Mirza et al., CVPR 2023) under the final schedule: L1 alignment of activation mean/variance (encoder maps location-wise, decoder layers channel-wise) to COCO val2017 moments; no anchor.
+name: actmad_a03_dense_jpeg
+method: actmad
+phase: P4
+model: dfine_s
+iters: 1000
+lr: 1e-06
+weight_decay: 0.0001
+clip_max_norm: 0.1
+batch_size: 2
+use_frozen: true
+use_ema: true
+ema_decay: 0.9995
+diag_every: 50
+eval_every: 250
+eval_frame_stride: 3
+deltas:
+- 1
+- 2
+- 5
+base_stride: 4
+max_pairs_per_clip: 400
+photometric: 0.0
+flow_downscale: 2
+criterion:
+  motion: none
+  anchor_weight: 0.0
+corruption: jpeg
+tta:
+  source_images: 512

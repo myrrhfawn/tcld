@@ -1,0 +1,30 @@
+# Tent baseline (Wang et al., ICLR 2021) under the final schedule: binary entropy of candidate queries' top-class score, only normalization affine params of the arm's trainable parts updated; no anchor.
+name: tent_a03_dense_jpeg
+method: tent
+phase: P4
+model: dfine_s
+iters: 1000
+lr: 1e-05
+weight_decay: 0.0001
+clip_max_norm: 0.1
+batch_size: 2
+use_frozen: true
+use_ema: true
+ema_decay: 0.9995
+diag_every: 50
+eval_every: 250
+eval_frame_stride: 3
+deltas:
+- 1
+- 2
+- 5
+base_stride: 4
+max_pairs_per_clip: 400
+photometric: 0.0
+flow_downscale: 2
+criterion:
+  motion: none
+  anchor_weight: 0.0
+corruption: jpeg
+tta:
+  score_min: 0.1

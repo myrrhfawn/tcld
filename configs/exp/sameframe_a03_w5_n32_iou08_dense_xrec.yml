@@ -1,0 +1,46 @@
+# Cross-recording protocol: adaptation on an unlabeled MOT test recording of the same camera, evaluation on the whole labeled train recording (eval stride 6, no intermediate evals).
+# Same-frame two-view baseline under the final protocol: identical sym W1 loss, anchor, gates and N0 floor, but the pair is two photometric views of the SAME frame (no temporal term, no motion compensation).
+name: sameframe_a03_w5_n32_iou08_dense_xrec
+phase: P4
+method: tcld
+model: dfine_s
+iters: 1000
+lr: 1e-05
+weight_decay: 0.0001
+clip_max_norm: 0.1
+batch_size: 2
+use_frozen: true
+use_ema: true
+ema_decay: 0.9995
+diag_every: 50
+eval_every: 0
+eval_frame_stride: 6
+deltas:
+- 0
+base_stride: 4
+max_pairs_per_clip: 400
+photometric: 0.3
+flow_downscale: 2
+criterion:
+  tcl:
+    mode: sym
+    divergence: w1
+    w1_scale: 10.0
+    temperature: 1.0
+    min_kept: 0.8
+    sharp_margin: 0.1
+    min_denom_pairs: 32
+  tcl_weight: 5.0
+  motion: none
+  use_scale: false
+  score_thresh: 0.3
+  iou_thresh: 0.8
+  nms_iou: 0.7
+  min_motion_px: 0.0
+  motion_weight: false
+  conf_weight: true
+  anchor_weight: 0.3
+  anchor_iou: 0.7
+  l2sp_weight: 0.0
+  entropy_floor_weight: 0.0
+independent_views: true

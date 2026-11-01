@@ -1,0 +1,50 @@
+# night shift, stricter cross-frame matching (IoU 0.8): drop ambiguous crowd pairs that may bias the compensated target
+# TCL x5 + anchor 0.3, loss denominator floored at 32 pairs (few pairs no longer get the full weight)
+# teacher-free base with dense pair sampling (anchor every 4 frames instead of 24)
+# Teacher-free variant (no EMA/frozen target): symmetric W1 between the student's own frames.
+name: tf_a03_w5_n32_iou08_dense_night
+phase: P4
+method: tcld
+model: dfine_s
+
+iters: 1000
+lr: 1e-05
+weight_decay: 0.0001
+clip_max_norm: 0.1
+batch_size: 2
+use_frozen: true
+use_ema: true
+ema_decay: 0.9995
+diag_every: 50
+eval_every: 250
+eval_frame_stride: 3   # MOT-only config: dense evaluation (see FINDINGS 2026-10-07)
+
+deltas: [1, 2, 5]
+base_stride: 4
+max_pairs_per_clip: 400
+photometric: 0.0
+flow_downscale: 2
+
+criterion:
+  tcl:
+    mode: sym           # teacher-free: both sides are the student, stop-grad each way
+    divergence: w1
+    w1_scale: 10.0
+    temperature: 1.0
+    min_kept: 0.8
+    sharp_margin: 0.1
+    min_denom_pairs: 32
+  tcl_weight: 5.0
+  motion: hybrid        # hybrid (frozen-model shift, flow fallback) | flow | frozen | pred | none
+  use_scale: false
+  score_thresh: 0.3
+  iou_thresh: 0.8
+  nms_iou: 0.7
+  min_motion_px: 1.0
+  motion_weight: false
+  conf_weight: true
+  anchor_weight: 0.3
+  anchor_iou: 0.7
+  l2sp_weight: 0.0
+  entropy_floor_weight: 0.0
+corruption: night
