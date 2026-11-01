@@ -9,14 +9,14 @@
 
 ## 0. Позначення і постановка
 
-Статична камера дає нерозмічене відео $\{I_t\}$. Є детектор $f_\theta$ (D-FINE), навчений на джерельному домені (COCO), і
+Статична камера дає нерозмічене відео $\lbrace I_t \rbrace$. Є детектор $f_\theta$ (D-FINE), навчений на джерельному домені (COCO), і
 його заморожена копія $f_{\theta_0}$. Для кадру $I_t$ детектор повертає $Q$ запитів; запит $q$ має класові логіти
 $z_q \in \mathbb{R}^C$, опорний бокс $(c^x_q, c^y_q, \ell^w_q, \ell^h_q)$ (пікселі, `ref_points_initial`) і для кожного з
-чотирьох країв $e \in \{\text{left}, \text{top}, \text{right}, \text{bottom}\}$ дискретний розподіл
+чотирьох країв $e \in \lbrace \text{left}, \text{top}, \text{right}, \text{bottom} \rbrace$ дискретний розподіл
 
-$$p_{q,e} = \operatorname{softmax}(u_{q,e}) \in \Delta^{R}, \qquad R = 32,$$
+$$p_{q,e} = \mathrm{softmax}(u_{q,e}) \in \Delta^{R}, \qquad R = 32,$$
 
-над $R+1 = 33$ бінами (`pred_corners`). Мета донавчання: за парами кадрів $(I_t, I_{t+\Delta})$, $\Delta \in \{1, 2, 5\}$,
+над $R+1 = 33$ бінами (`pred_corners`). Мета донавчання: за парами кадрів $(I_t, I_{t+\Delta})$, $\Delta \in \lbrace 1, 2, 5 \rbrace$,
 знайти $\theta$, що підвищує точність детекції на цій камері, не маючи жодної розмітки й не змінюючи архітектуру та
 швидкість інференсу.
 
@@ -43,8 +43,8 @@ r_{q,e} = c_{q,e} + \sigma_e\,\frac{\ell_{q,e}}{2},$$
 і висота для горизонтальних, $r_{q,e}$ — відповідний край опорного бокса. Декодована позиція краю — сподівання
 $\hat x_{q,e} = \sum_n p_{q,e}(n)\, x_{q,e}(n)$.
 
-**Лема 1 (сітки запитів афінно різні).** Множина позицій бінів $\{x_{q,e}(n)\}_n$ — афінний образ фіксованої множини
-$\{W(n)\}$ з параметрами $(r_{q,e}, \sigma_e \ell_{q,e}/s)$, які залежать від запиту. Для $\ell = 100$ px крок сітки
+**Лема 1 (сітки запитів афінно різні).** Множина позицій бінів $\lbrace x_{q,e}(n) \rbrace_n$ — афінний образ фіксованої множини
+$\lbrace W(n) \rbrace$ з параметрами $(r_{q,e}, \sigma_e \ell_{q,e}/s)$, які залежать від запиту. Для $\ell = 100$ px крок сітки
 у пікселях дорівнює $\Delta W \cdot \ell / s$: $\approx 1.9$ px біля опорного краю, $5.3$ px біля $W = \pm 2$ і $50$ px
 для хвостового біна; носій внутрішніх бінів — $r \pm \ell/2$, з хвостами — $r \pm \ell$.
 
@@ -164,8 +164,8 @@ $|\varepsilon| \approx 2$–$8$ px для рухомих об'єктів (§3.2)
 
 **(W1-3) Обмежений градієнт за будь-якого перекриття носіїв.** Оскільки $F_a(x) = \sum_n p_a(n)\,\mathbf 1[T_d x_a(n) \le x]$,
 
-$$\frac{\partial W_1}{\partial p_a(n)} = \int \operatorname{sign}\bigl(F_a(x) - F_b(x)\bigr)\,\mathbf 1[T_d x_a(n) \le x]\, dx,
-\qquad \Bigl|\frac{\partial W_1}{\partial p_a(n)}\Bigr| \le |\operatorname{supp}\,\mu_a \cup \operatorname{supp}\,\mu_b|.$$
+$$\frac{\partial W_1}{\partial p_a(n)} = \int \mathrm{sign}\bigl(F_a(x) - F_b(x)\bigr)\,\mathbf 1[T_d x_a(n) \le x]\, dx,
+\qquad \Bigl|\frac{\partial W_1}{\partial p_a(n)}\Bigr| \le |\mathrm{supp}\,\mu_a \cup \mathrm{supp}\,\mu_b|.$$
 
 Градієнт обмежений довжиною об'єднаного носія навіть за непересічних носіїв, де KL після перенесення або не визначений
 ($k = 0$), або дає вибухові значення; на практиці це дало стабільний перший sweep без NaN (`FINDINGS` 2026-10-03).
@@ -185,7 +185,7 @@ $$W_1(\mu_a, \mu_b) \;\ge\; |m_a - m_b|,$$
 
 **(W1-5) Симетрична форма з зупинкою градієнта.** Фінальний метод без учителя (`mode: sym`):
 
-$$\mathcal L_{ie} = \tfrac12\Bigl[W_1\bigl(\operatorname{sg}(T_d\mu_{a}),\, \mu_{b}\bigr) + W_1\bigl(T_d\mu_{a},\, \operatorname{sg}(\mu_{b})\bigr)\Bigr],$$
+$$\mathcal L_{ie} = \tfrac12\Bigl[W_1\bigl(\mathrm{sg}(T_d\mu_{a}),\, \mu_{b}\bigr) + W_1\bigl(T_d\mu_{a},\, \mathrm{sg}(\mu_{b})\bigr)\Bigr],$$
 
 значення дорівнює $W_1(T_d\mu_a, \mu_b)$, але кожна сторона отримує половину градієнта. Нерухомі точки — будь-які
 $\mu_a, \mu_b$ з $T_d\mu_a = \mu_b$, і серед них є вироджені (загострення до $\delta$ в обох кадрах, спільний дрейф
