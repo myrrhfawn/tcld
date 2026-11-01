@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import contextlib
 from pathlib import Path
-from typing import Iterator, List, Optional, Union
+from typing import Iterator, List, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -38,10 +38,40 @@ from src.zoo.dfine.dfine_utils import distance2bbox, weighting_function  # noqa:
 PathLike = Union[str, Path]
 
 
+def _install_topk_hook() -> None:
+    """Patch D-FINE's query selection once (class level, so student, frozen and EMA copies all
+    get it) to record on the decoder the anchor positions of the selected top-k queries and the
+    dense encoder class logits. Both feed the position-aligned prediction anchor, which keeps
+    working when the encoder is trainable and the top-k sets of student and frozen model drift."""
+    from src.zoo.dfine.dfine_decoder import DFINETransformer
+
+    if getattr(DFINETransformer, "_tcld_topk_hooked", False):
+        return
+    orig = DFINETransformer._select_topk
+
+    def _select_topk(self, memory, outputs_logits, outputs_anchors_unact, topk):
+        if self.query_select_method == "default":
+            _, ind = torch.topk(outputs_logits.max(-1).values, topk, dim=-1)
+        elif self.query_select_method == "one2many":
+            _, ind = torch.topk(outputs_logits.flatten(1), topk, dim=-1)
+            ind = ind // self.num_classes
+        else:
+            _, ind = torch.topk(outputs_logits.squeeze(-1), topk, dim=-1)
+        self._tcld_topk_ind = ind.detach()
+        self._tcld_enc_logits = outputs_logits.detach()
+        return orig(self, memory, outputs_logits, outputs_anchors_unact, topk)
+
+    DFINETransformer._select_topk = _select_topk
+    DFINETransformer._tcld_topk_hooked = True
+
+
 class DFINEAdapter(nn.Module, DistributionalDetector):
-    def __init__(self, config_path: PathLike, checkpoint: Optional[PathLike] = None):
+    def __init__(self, config_path: PathLike, checkpoint: Optional[PathLike] = None, **cfg_overrides):
+        """cfg_overrides are merged into the YAML (e.g. eval_spatial_size=[736, 1280] for
+        eval-mode inference at another resolution; (h, w), multiples of 32)."""
         super().__init__()
-        cfg = YAMLConfig(str(config_path))
+        _install_topk_hook()
+        cfg = YAMLConfig(str(config_path), **cfg_overrides)
         if "HGNetv2" in cfg.yaml_cfg:
             cfg.yaml_cfg["HGNetv2"]["pretrained"] = False
         self.cfg = cfg
@@ -53,6 +83,20 @@ class DFINEAdapter(nn.Module, DistributionalDetector):
             self.load_checkpoint(checkpoint)
 
     # ------------------------------------------------------------------ build
+    def with_model(self, model: nn.Module) -> "DFINEAdapter":
+        """A new adapter wrapping another nn.Module (e.g. an EMA copy) that shares the
+        config / postprocessor / meta. NOTE: never `copy.copy` an adapter and reassign
+        `.model` — nn.Module's shallow copy shares `_modules`, so the original's model
+        would be replaced too."""
+        other = DFINEAdapter.__new__(DFINEAdapter)
+        nn.Module.__init__(other)
+        other.cfg = self.cfg
+        other.model = model
+        other.postprocessor = self.postprocessor
+        other.tcld_meta = self.tcld_meta
+        other.checkpoint_path = self.checkpoint_path
+        return other
+
     def load_checkpoint(self, path: PathLike) -> None:
         path = Path(path)
         state = torch.load(path, map_location="cpu", weights_only=False)
@@ -60,7 +104,13 @@ class DFINEAdapter(nn.Module, DistributionalDetector):
             state = state["ema"]["module"]
         elif "model" in state:
             state = state["model"]
+        # anchors / valid_mask are buffers generated for eval_spatial_size; drop them
+        # when the model was built for another size (they are regenerated at init).
+        own = self.model.state_dict()
+        state = {k: v for k, v in state.items()
+                 if not (k.endswith(("decoder.anchors", "decoder.valid_mask")) and k in own and own[k].shape != v.shape)}
         missing, unexpected = self.model.load_state_dict(state, strict=False)
+        missing = [k for k in missing if not k.endswith(("decoder.anchors", "decoder.valid_mask"))]
         if missing or unexpected:
             raise RuntimeError(
                 f"Checkpoint {path} does not match the model: "
@@ -144,6 +194,8 @@ class DFINEAdapter(nn.Module, DistributionalDetector):
             ref_points=out["ref_points"],
             up=out["up"],
             reg_scale=out["reg_scale"],
+            topk_ind=getattr(self.decoder, "_tcld_topk_ind", None),
+            enc_logits=getattr(self.decoder, "_tcld_enc_logits", None),
         )
         if all_layers:
             for aux in out.get("aux_outputs", []):
@@ -210,13 +262,15 @@ def load_dfine(
     checkpoint: Optional[PathLike] = None,
     device: Union[str, torch.device] = "cpu",
     strict_checkpoint: bool = True,
+    eval_spatial_size: Optional[Tuple[int, int]] = None,
 ) -> DFINEAdapter:
     """Build an adapter from configs/model/<model>.yml. If `checkpoint` is None, the
     checkpoint named in the config's `tcld.checkpoint` is looked up in $TCLD_CKPT.
     With strict_checkpoint=False a missing file yields a randomly initialized model
     (used by CPU unit tests)."""
     cfg_path = model_config(model)
-    adapter = DFINEAdapter(cfg_path)
+    overrides = {"eval_spatial_size": list(eval_spatial_size)} if eval_spatial_size else {}
+    adapter = DFINEAdapter(cfg_path, **overrides)
     if checkpoint is None:
         name = adapter.tcld_meta.get("checkpoint")
         checkpoint = ckpt_dir() / name if name else None

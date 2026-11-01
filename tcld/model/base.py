@@ -29,6 +29,8 @@ class DistOutput:
     up: torch.Tensor              # scalar tensor
     reg_scale: torch.Tensor       # scalar tensor
     aux: List["DistOutput"] = field(default_factory=list)  # shallower decoder layers, if requested
+    topk_ind: Optional[torch.Tensor] = None   # [B, Q] anchor positions of the selected queries (D-FINE top-k)
+    enc_logits: Optional[torch.Tensor] = None # [B, A, C] dense encoder class logits over all anchor positions
 
     @property
     def reg_max(self) -> int:
