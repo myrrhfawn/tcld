@@ -42,3 +42,6 @@ results/figures/*.mp4
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# thesis formulation stays local
+FORMULA.md
