@@ -1,5 +1,5 @@
 # data, checkpoints, runs — never in git (see ai-plan.md rule 3)
-data/
+/data/
 checkpoints/
 runs/
 weight/
