@@ -13,6 +13,7 @@ services:
       TCLD_RUNS: /runs
       TCLD_CKPT: /ckpt
       TCLD_IN_DOCKER: "1"
+      TORCH_HOME: /ckpt/torch
       NVIDIA_VISIBLE_DEVICES: ${TCLD_GPUS:-all}
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
     volumes:

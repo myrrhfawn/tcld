@@ -1,3 +1,6 @@
 [submodule "external/D-FINE"]
 	path = external/D-FINE
 	url = https://github.com/Peterande/D-FINE.git
+[submodule "external/scenes100"]
+	path = external/scenes100
+	url = https://github.com/cvlab-stonybrook/scenes100.git

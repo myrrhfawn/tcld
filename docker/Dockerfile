@@ -21,6 +21,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TCLD_RUNS=/runs \
     TCLD_CKPT=/ckpt \
     TCLD_IN_DOCKER=1 \
+    TORCH_HOME=/ckpt/torch \
     PYTHONPATH=/workspace:/workspace/external/D-FINE
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
