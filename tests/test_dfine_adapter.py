@@ -70,7 +70,18 @@ def test_gradients_reach_decoder(dfine_s_random):
     m.freeze(["backbone", "encoder"])
     x = torch.rand(1, 3, 320, 320)
     d = m.forward_distributions(x)
-    loss = torch.softmax(d.corners, -1).var()
+    # upstream zero-inits the last bbox-head layer -> uniform distributions; use a loss
+    # whose gradient is non-zero at the uniform point (expected bin index)
+    loss = (torch.softmax(d.corners, -1) * torch.linspace(0, 1, d.corners.shape[-1])).sum()
     loss.backward()
     grads = [p.grad for p in m.model.decoder.parameters() if p.requires_grad and p.grad is not None]
     assert grads and any(g.abs().sum() > 0 for g in grads)
+
+
+def test_topk_positions_recorded(dfine_s_random):
+    adapter = dfine_s_random
+    x = torch.rand(1, 3, 640, 640)
+    out = adapter.forward_distributions(x)
+    assert out.topk_ind is not None and out.topk_ind.shape == out.logits.shape[:2]
+    assert out.enc_logits is not None and out.enc_logits.shape[0] == 1 and out.enc_logits.shape[-1] == out.logits.shape[-1]
+    assert out.topk_ind.max() < out.enc_logits.shape[1] and out.topk_ind[0].unique().numel() == out.topk_ind.shape[1]
